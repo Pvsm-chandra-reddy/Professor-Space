@@ -147,7 +147,7 @@ export const CreatePost = () => {
           />
         )}
         <Editor
-          apiKey='process.env.REACT_APP_TINYMCE_API_KEY'
+          apiKey={import.meta.env.VITE_TINYMCE_API_KEY}
           initialValue=''
           init={{
             height: 500,
