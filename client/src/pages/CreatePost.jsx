@@ -1,94 +1,89 @@
 import React, { useState } from 'react';
 import { Alert, Button, FileInput, Select, TextInput } from 'flowbite-react';
 import {
-    getDownloadURL,
-    getStorage,
-    ref,
-    uploadBytesResumable,
-  } from 'firebase/storage';
-  import { app } from '../firebase';
-  import { CircularProgressbar } from 'react-circular-progressbar';
-  import 'react-circular-progressbar/dist/styles.css';
-  import { useNavigate } from 'react-router-dom';
-    
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+} from 'firebase/storage';
+import { app } from '../firebase';
+import { CircularProgressbar } from 'react-circular-progressbar';
+import 'react-circular-progressbar/dist/styles.css';
+import { useNavigate } from 'react-router-dom';
 
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
-
-
-
+import { Editor } from '@tinymce/tinymce-react';
 
 export const CreatePost = () => {
-    const [value, setValue] = useState('');const [file, setFile] = useState(null);
-    const [imageUploadProgress, setImageUploadProgress] = useState(null);
-    const [imageUploadError, setImageUploadError] = useState(null);
-    const [formData, setFormData] = useState({});
-    const [publishError, setPublishError] = useState(null);
-  
-    const navigate = useNavigate();
-  
-    const handleUpdloadImage = async () => {
-      try {
-        if (!file) {
-          setImageUploadError('Please select an image');
-          return;
-        }
-        setImageUploadError(null);
-        const storage = getStorage(app);
-        const fileName = new Date().getTime() + '-' + file.name;
-        const storageRef = ref(storage, fileName);
-        const uploadTask = uploadBytesResumable(storageRef, file);
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setImageUploadProgress(progress.toFixed(0));
-          },
-          (error) => {
-            setImageUploadError('Image upload failed');
-            setImageUploadProgress(null);
-          },
-          () => {
-            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
-              setImageUploadProgress(null);
-              setImageUploadError(null);
-              setFormData({ ...formData, image: downloadURL });
-            });
-          }
-        );
-      } catch (error) {
-        setImageUploadError('Image upload failed');
-        setImageUploadProgress(null);
-        console.log(error);
-      }
-    };
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-      try {
-        const res = await fetch('/api/post/create', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(formData),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setPublishError(data.message);
-          return;
-        }
-  
-        if (res.ok) {
-          setPublishError(null);
-          navigate(`/post/${data.slug}`);
-        }
-      } catch (error) {
-        setPublishError('Something went wrong');
-      }
-    };
-  
+  const [value, setValue] = useState('');
+  const [file, setFile] = useState(null);
+  const [imageUploadProgress, setImageUploadProgress] = useState(null);
+  const [imageUploadError, setImageUploadError] = useState(null);
+  const [formData, setFormData] = useState({});
+  const [publishError, setPublishError] = useState(null);
 
+  const navigate = useNavigate();
+
+  const handleUpdloadImage = async () => {
+    try {
+      if (!file) {
+        setImageUploadError('Please select an image');
+        return;
+      }
+      setImageUploadError(null);
+      const storage = getStorage(app);
+      const fileName = new Date().getTime() + '-' + file.name;
+      const storageRef = ref(storage, fileName);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setImageUploadProgress(progress.toFixed(0));
+        },
+        (error) => {
+          setImageUploadError('Image upload failed');
+          setImageUploadProgress(null);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            setImageUploadProgress(null);
+            setImageUploadError(null);
+            setFormData({ ...formData, image: downloadURL });
+          });
+        }
+      );
+    } catch (error) {
+      setImageUploadError('Image upload failed');
+      setImageUploadProgress(null);
+      console.log(error);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('/api/post/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPublishError(data.message);
+        return;
+      }
+
+      if (res.ok) {
+        setPublishError(null);
+        navigate(`/post/${data.slug}`);
+      }
+    } catch (error) {
+      setPublishError('Something went wrong');
+    }
+  };
 
   return (
     <div className='p-3 max-w-3xl mx-auto min-h-screen'>
@@ -151,13 +146,24 @@ export const CreatePost = () => {
             className='w-full h-72 object-cover'
           />
         )}
-        <ReactQuill
-          theme='snow'
-          placeholder='Write something...'
-          className='h-72 mb-12'
-          required
-          onChange={(value) => {
-            setFormData({ ...formData, content: value });
+        <Editor
+          apiKey='process.env.REACT_APP_TINYMCE_API_KEY'
+          initialValue=''
+          init={{
+            height: 500,
+            menubar: false,
+            plugins: [
+              'advlist autolink lists link image charmap print preview anchor',
+              'searchreplace visualblocks code fullscreen',
+              'insertdatetime media table paste code help wordcount'
+            ],
+            toolbar:
+              'undo redo | formatselect | bold italic backcolor | \
+              alignleft aligncenter alignright alignjustify | \
+              bullist numlist outdent indent | removeformat | help'
+          }}
+          onEditorChange={(content) => {
+            setFormData({ ...formData, content });
           }}
         />
         <Button type='submit' gradientDuoTone='purpleToPink'>
@@ -170,6 +176,5 @@ export const CreatePost = () => {
         )}
       </form>
     </div>
-
-  )
-}
+  );
+};

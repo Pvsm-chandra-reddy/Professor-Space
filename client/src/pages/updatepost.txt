@@ -1,5 +1,6 @@
 import { Alert, Button, FileInput, Select, TextInput } from 'flowbite-react';
-import { Editor } from '@tinymce/tinymce-react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import {
   getDownloadURL,
   getStorage,
@@ -7,7 +8,7 @@ import {
   uploadBytesResumable,
 } from 'firebase/storage';
 import { app } from '../firebase';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -24,13 +25,10 @@ export default function UpdatePost() {
     image: ''
   });
   const [publishError, setPublishError] = useState(null);
-  const [apiKeyError, setApiKeyError] = useState(null);
   const { postId } = useParams();
 
   const navigate = useNavigate();
   const { currentUser } = useSelector((state) => state.user);
-
-  const tinymceApiKey = import.meta.env.VITE_TINYMCE_API_KEY;
 
   useEffect(() => {
     const fetchPost = async () => {
@@ -104,21 +102,9 @@ export default function UpdatePost() {
     }
   };
 
-  useEffect(() => {
-    if (!tinymceApiKey) {
-      setApiKeyError('A valid API key is required to continue using TinyMCE. Please alert the admin to check the current API key.');
-    }
-  }, [tinymceApiKey]);
-
   return (
     <div className='p-3 max-w-3xl mx-auto min-h-screen'>
       <h1 className='text-center text-3xl my-7 font-semibold'>Update post</h1>
-      {apiKeyError && (
-        <Alert color='failure' className='mb-5'>
-          {apiKeyError}
-          <a href='https://www.tiny.cloud/get-tiny/' target='_blank' rel='noopener noreferrer'> Click here to learn more.</a>
-        </Alert>
-      )}
       <form className='flex flex-col gap-4' onSubmit={handleSubmit}>
         <div className='flex flex-col gap-4 sm:flex-row justify-between'>
           <TextInput
@@ -174,27 +160,15 @@ export default function UpdatePost() {
             className='w-full h-72 object-cover'
           />
         )}
-        {!apiKeyError && (
-          <Editor
-            apiKey={tinymceApiKey}
-            value={formData.content || ''}
-            init={{
-              height: 500,
-              menubar: false,
-              plugins: [
-                'advlist autolink lists link image charmap print preview anchor',
-                'searchreplace visualblocks code fullscreen',
-                'insertdatetime media table paste code help wordcount'
-              ],
-              toolbar:
-                'undo redo | formatselect | bold italic backcolor | \
-                alignleft aligncenter alignright alignjustify | \
-                bullist numlist outdent indent | removeformat | help'
-            }}
-            onEditorChange={(content) => setFormData({ ...formData, content })}
-          />
-        )}
-        <Button type='submit' gradientDuoTone='purpleToPink' disabled={!!apiKeyError}>
+        <ReactQuill
+          theme='snow'
+          value={formData.content || ''}
+          placeholder='Write something...'
+          className='h-72 mb-12'
+          required
+          onChange={(value) => setFormData({ ...formData, content: value })}
+        />
+        <Button type='submit' gradientDuoTone='purpleToPink'>
           Update post
         </Button>
         {publishError && (
