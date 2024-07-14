@@ -42,8 +42,28 @@ export default function OAuth() {
         
     }
 
+    function oa(response) {
+        console.log("Encoded JWT ID token: " + response.credential);
+        
+        fetch('/api/auth/google', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id_token: response.credential })
+        }).then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                
+            }).catch((error) => {
+                console.error('Error:', error);
+            });
+  
+    }
+
+
   return (
-<Button type='button' gradientDuoTone='pinkToOrange' outline onClick={handleGoogleClick}>
+<Button type='button' gradientDuoTone='pinkToOrange' outline onClick={oa}>
         <AiFillGoogleCircle className='w-6 h-6 mr-2'/>
         Continue with Google
     </Button>
