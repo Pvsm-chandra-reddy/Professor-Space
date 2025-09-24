@@ -1,0 +1,23 @@
+{
+  "version": 3,
+  "projects": [
+    {
+      "name": "frontend",
+      "root": "client",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist"
+    },
+    {
+      "name": "backend",
+      "root": "api",
+      "buildCommand": "npm install",
+      "devCommand": "node index.js",
+      "routes": [
+        {
+          "src": "/api/(.*)",
+          "dest": "/api/index.js"
+        }
+      ]
+    }
+  ]
+}
