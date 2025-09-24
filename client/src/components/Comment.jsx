@@ -2,7 +2,7 @@ import { useSelector } from 'react-redux';
 import { Button, Textarea } from 'flowbite-react';
 import { FaThumbsUp } from 'react-icons/fa';
 
-import { set } from 'mongoose';
+
 import { useEffect, useState } from 'react';
 import moment from 'moment';
 
